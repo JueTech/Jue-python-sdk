@@ -10,7 +10,11 @@ class memory():
 
         self.expired = expired
         self.cache_name = cache_name or hashlib.md5(".").hexdigest()
-        self.cache_path = cache_path or os.path.abspath("./cache")
+
+        if cache_path and os.path.exists(cache_path) == True:
+            self.cache_path = cache_path
+        else:
+            self.cache_path = os.path.abspath("./cache")
 
     def __get_cache(self):
         path = self.cache_path+"/"+self.cache_name+self.extension
@@ -19,31 +23,57 @@ class memory():
             data = fp.read()
             return (fp, data)
         except IOError as e:
-            print("Open file error : %s" % e)
+            fp = open(path, "w+")
+            data = "{}"
+            return (fp, data)
 
     def __set_cache(self, data):
         path = self.cache_path+"/"+self.cache_name+self.extension
         fp = open(path, "w+")
         fp.write(data)
 
+    def get_hash(self):
+        return self.cache_name
+
+    def set_exipired(self, expired=3600):
+        self.expired = expired or self.expired
+        return self.expired
+
+    def set_cache_name(self, name):
+        self.cache_name = hashlib.md5(name).hexdigest()
+        return self.cache_name
+
+    def get_cache_name(self):
+        return self.cache_name
+
+    def set_cache_dir(self, dir):
+        if os.path.exists(dir) == True:
+            self.cache_path = dir
+        return self.cache_path
+
+    def retrieve(self, key):
+        fp, data = self.__get_cache()
+        data = json.loads(data)
+
+        return data[key] or None
+
     def store(self, key, value, expired=None):
         expired = expired or self.expired
+        fp, data = self.__get_cache()
+        data = json.loads(data)
+
         store_value = {
-            "time": time.time(),
+            "time": int(time.time()),
             "expired": expired,
             "data": value
         }
-
-        store_data = {
-            "key": key,
-            "value": store_value
-        }
-
-        fp, data = self.__get_cache()
-        m = json.dumps(store_data)
+        data[key] = store_value
+        m = json.dumps(data)
         self.__set_cache(m.strip(""))
 
 
 if __name__ == "__main__":
     memory = memory(cache_extension=".cache")
+    memory.set_cache_name("fucku")
     memory.store("key", "value")
+    
