@@ -51,16 +51,28 @@ class memory():
             self.cache_path = dir
         return self.cache_path
 
-    def retrieve(self, key):
+    def get(self, key):
         fp, data = self.__get_cache()
         data = json.loads(data)
+        if data.has_key(key):
+            item = data[key]
+            if item["time"] + item["expired"] < int(time.time()):
+                '''data expired'''
+                del data[key]
+                self.__set_cache(json.dumps(data))
+                return None
+            else:
+                return item
+        return None
 
-        return data[key] or None
-
-    def store(self, key, value, expired=None):
+    def set(self, key, value, expired=None):
         expired = expired or self.expired
         fp, data = self.__get_cache()
-        data = json.loads(data)
+
+        try:
+            data = json.loads(data)
+        except:
+            data = {}
 
         store_value = {
             "time": int(time.time()),
@@ -71,9 +83,7 @@ class memory():
         m = json.dumps(data)
         self.__set_cache(m.strip(""))
 
-
 if __name__ == "__main__":
     memory = memory(cache_extension=".cache")
-    memory.set_cache_name("fucku")
-    memory.store("key", "value")
-    
+    memory.set("key", "value")
+    print memory.get("123")
