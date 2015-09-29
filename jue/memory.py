@@ -66,6 +66,19 @@ class memory():
                 del data[key]
         self.__set_cache(json.dumps(data))
 
+    def is_cache(self, key):
+        fp, data = self.__get_cache()
+        data = json.loads(data)
+        if data.has_key(key):
+            item = data[key]
+            if item["time"] + item["expired"] < int(time.time()):
+                del data[key]
+                self.__set_cache(json.dumps(data))
+                return False
+            else:
+                return True
+        return False
+
     def get(self, key):
         fp, data = self.__get_cache()
         data = json.loads(data)
@@ -100,6 +113,7 @@ class memory():
 
 if __name__ == "__main__":
     memory = memory(cache_extension=".cache")
-    memory.set("key", "value", 1)
+    memory.set("key", "value")
     memory.clear_expired()
+    print memory.is_cache("key")
     print memory.get("key")
