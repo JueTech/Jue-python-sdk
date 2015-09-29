@@ -32,12 +32,12 @@ class memory():
         fp = open(path, "w+")
         fp.write(data)
 
-    def get_hash(self):
-        return self.cache_name
-
     def set_exipired(self, expired=3600):
         self.expired = expired or self.expired
         return self.expired
+
+    def get_cache_name(self):
+        return self.cache_name
 
     def set_cache_name(self, name):
         self.cache_name = hashlib.md5(name).hexdigest()
@@ -46,10 +46,25 @@ class memory():
     def get_cache_name(self):
         return self.cache_name
 
+    def set_extension(self, extension):
+        extension = extension.lstrip(".") or "cache"
+        self.extension = "." + extension
+
+    def get_extension(self):
+        return self.extension
+
     def set_cache_dir(self, dir):
         if os.path.exists(dir) == True:
             self.cache_path = dir
         return self.cache_path
+
+    def clear_expired(self):
+        fp, data = self.__get_cache()
+        data = json.loads(data)
+        for key, value in data.items():
+            if value["time"] + value["expired"] < int(time.time()):
+                del data[key]
+        self.__set_cache(json.dumps(data))
 
     def get(self, key):
         fp, data = self.__get_cache()
@@ -85,5 +100,6 @@ class memory():
 
 if __name__ == "__main__":
     memory = memory(cache_extension=".cache")
-    memory.set("key", "value")
-    print memory.get("123")
+    memory.set("key", "value", 1)
+    memory.clear_expired()
+    print memory.get("key")
