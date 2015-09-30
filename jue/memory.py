@@ -3,7 +3,7 @@
 
 import os, json, time, hashlib
 
-class memory():
+class memory(object):
     def __init__(self, cache_path=None, cache_name=None, cache_extension="cache", expired=3600):
         extension = cache_extension.lstrip(".") or "cache"
         self.extension = "." + extension
@@ -16,6 +16,9 @@ class memory():
         else:
             self.cache_path = os.path.abspath("./cache")
 
+    '''
+    Get cache file point and data, if file not exist, data = {}
+    '''
     def __get_cache(self):
         path = self.cache_path+"/"+self.cache_name+self.extension
         try:
@@ -26,38 +29,67 @@ class memory():
             fp = open(path, "w+")
             data = "{}"
             return (fp, data)
-
+    '''
+    Set cache file by string data, data json format likes {"key": {"expired": 3600, "data": "value", "time": 1443578308}}
+    :param string data
+    '''
     def __set_cache(self, data):
         path = self.cache_path+"/"+self.cache_name+self.extension
         fp = open(path, "w+")
         fp.write(data)
 
+    '''
+    Set expired length
+    :param int expired  expired time
+    '''
     def set_exipired(self, expired=3600):
         self.expired = expired or self.expired
         return self.expired
 
+    '''
+    Get cache file name in md5 hash
+    '''
     def get_cache_name(self):
         return self.cache_name
 
+    '''
+    Set cache file name by string
+    :param string name  cache file name
+    '''
     def set_cache_name(self, name):
         self.cache_name = hashlib.md5(name).hexdigest()
         return self.cache_name
 
-    def get_cache_name(self):
-        return self.cache_name
-
+    '''
+    Set cache file extension without "."
+    :param string extension without "."
+    :return
+    '''
     def set_extension(self, extension):
         extension = extension.lstrip(".") or "cache"
         self.extension = "." + extension
 
+    '''
+    Get cache file extension name
+    :return extension
+    '''
     def get_extension(self):
         return self.extension
 
+    '''
+    Set cahce file save directory, with check exist, please make sure directory has write competencec
+    :param string dir
+    :return cache_path
+    '''
     def set_cache_dir(self, dir):
         if os.path.exists(dir) == True:
             self.cache_path = dir
         return self.cache_path
 
+    '''
+    Clear expired keys in cache file
+    :return null
+    '''
     def clear_expired(self):
         fp, data = self.__get_cache()
         data = json.loads(data)
@@ -66,6 +98,10 @@ class memory():
                 del data[key]
         self.__set_cache(json.dumps(data))
 
+    '''
+    Check if key is cahce in cahce file and check expired
+    :return True/False
+    '''
     def is_cache(self, key):
         fp, data = self.__get_cache()
         data = json.loads(data)
@@ -79,6 +115,10 @@ class memory():
                 return True
         return False
 
+    '''
+    Get cahce value, with check expired
+    :param string key
+    '''
     def get(self, key):
         fp, data = self.__get_cache()
         data = json.loads(data)
@@ -92,7 +132,13 @@ class memory():
             else:
                 return item
         return None
-
+    
+    '''
+    Set cache
+    :param string key
+    :param string value in json format
+    :param int expired
+    '''
     def set(self, key, value, expired=None):
         expired = expired or self.expired
         fp, data = self.__get_cache()
@@ -113,7 +159,7 @@ class memory():
 
 if __name__ == "__main__":
     memory = memory(cache_extension=".cache")
-    memory.set("key", "value")
+    memory.set("key", "value", 1)
     memory.clear_expired()
     print memory.is_cache("key")
     print memory.get("key")
