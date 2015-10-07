@@ -3,6 +3,12 @@
 
 import os, json, time, hashlib
 
+__package__     = "Jue-php-sdk/request"
+__author__      = "homeway"
+__version__     = "2015.10.07"
+__copyright__   =  "Copyright(c) 2015"
+__link__        = "https://github.com/JueTech/Jue-python-sdk"
+
 class memory(object):
     def __init__(self, cache_path=None, cache_name=None, cache_extension="cache", expired=3600):
         extension = cache_extension.lstrip(".") or "cache"
